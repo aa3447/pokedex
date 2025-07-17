@@ -30,14 +30,14 @@ func TestCleanInput(t *testing.T){
 		},
 	}
 
-	for _, c := range cases {
-		result := cleanInput(c.input)
-		if len(result) != len(c.expected) {
-			t.Errorf("Expected length %d, got %d", len(c.expected), len(result))
+	for _, test := range cases {
+		result := cleanInput(test.input)
+		if len(result) != len(test.expected) {
+			t.Errorf("Expected length %d, got %d", len(test.expected), len(result))
 		}
 		for i, v := range result {
-			if v != c.expected[i] {
-				t.Errorf("Expected %s, got %s", c.expected[i], v)
+			if v != test.expected[i] {
+				t.Errorf("Expected %s, got %s", test.expected[i], v)
 			}
 		}
 	}

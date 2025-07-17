@@ -7,7 +7,9 @@ import (
 	"strings"
 )
 
+
  func main() {
+	commandMap := commandMapGen()
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -20,7 +22,15 @@ import (
 
 		cleanedInput := cleanInput(scanner.Text())
 
-		fmt.Printf("Your command was: %s\n", cleanedInput[0])
+		command, exist := commandMap[cleanedInput[0]]
+		if exist{
+			command.callback()
+			if command.name == "help"{
+				fmt.Println(command.description)
+			}
+		} else {
+			fmt.Printf("Unknown command: %s\n", cleanedInput[0])
+		}
 
 	}
  }
