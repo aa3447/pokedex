@@ -10,6 +10,10 @@ import (
 
  func main() {
 	commandMap := commandMapGen()
+	config := &config{
+		next: "",
+		prev: "",
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -24,7 +28,7 @@ import (
 
 		command, exist := commandMap[cleanedInput[0]]
 		if exist{
-			command.callback()
+			command.callback(config)
 			if command.name == "help"{
 				fmt.Println(command.description)
 			}

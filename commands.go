@@ -8,7 +8,12 @@ import (
 type commandTemplate struct {
 	name string
 	description string
-	callback func() error
+	callback func(config *config) error
+}
+
+type config struct {
+	next string
+	prev string
 }
 
 // commandMapGen generates a map of commands with their names, descriptions, and callbacks.
@@ -18,6 +23,11 @@ func commandMapGen() map[string]commandTemplate{
 			name: "exit",
 			description: "Exit the Pokedex",
 			callback: commandExit,
+		},
+		"map": {
+			name: "map",
+			description: "Displays the names of 20 location areas in the Pokemon",
+			callback: commandMap,
 		},
 	}
 
@@ -37,15 +47,28 @@ func commandMapGen() map[string]commandTemplate{
 }
 
 //Command Handlers
-func commandExit() error{
+func commandExit(config *config) error{
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
  }
 
- func commandHelp() error{
+ func commandHelp(config *config) error{
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println("")
 	return nil
  }
+
+func commandMap(config *config) error {
+	mapData ,err := getMap(config, true)
+	if err != nil {
+		fmt.Println("Error fetching map data:", err)
+		return err
+	}
+
+	for _, result := range mapData.Results {
+		fmt.Println(result.Name)
+	}
+	return nil
+}
