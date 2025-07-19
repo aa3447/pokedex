@@ -8,7 +8,7 @@ import (
 type commandTemplate struct {
 	name string
 	description string
-	callback func(config *config) error
+	callback func(*config) error
 }
 
 type config struct {
@@ -28,6 +28,11 @@ func commandMapGen() map[string]commandTemplate{
 			name: "map",
 			description: "Displays the names of 20 location areas in the Pokemon",
 			callback: commandMap,
+		},
+		"mapb": {
+			name: "mapb",
+			description: "Displays the previous names of 20 location areas in the Pokemon",
+			callback: commandMapBack,
 		},
 	}
 
@@ -62,6 +67,19 @@ func commandExit(config *config) error{
 
 func commandMap(config *config) error {
 	mapData ,err := getMap(config, true)
+	if err != nil {
+		fmt.Println("Error fetching map data:", err)
+		return err
+	}
+
+	for _, result := range mapData.Results {
+		fmt.Println(result.Name)
+	}
+	return nil
+}
+
+func commandMapBack(config *config) error {
+	mapData ,err := getMap(config, false)
 	if err != nil {
 		fmt.Println("Error fetching map data:", err)
 		return err
