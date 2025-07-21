@@ -1,10 +1,12 @@
-package main
+package http
+// Package http provides the HTTP client functionality to fetch data from the PokeAPI.
 
 
 import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+	"github.com/aa3447/pokedex/internal/global_structs"
 )
 
 type MapStruct struct {
@@ -19,24 +21,24 @@ type MapStruct struct {
 
 // getMap fetches the map data from the API and updates the config with the next and previous URLs.
 // If nextOrPrev is true, it fetches the next page; if false, it fetches the previous page.
-func getMap(config *config, nextOrPrev bool) (MapStruct, error){
+func GetMap(config *global_structs.Config, nextOrPrev bool) (MapStruct, error){
 	var err error
 	var resp *http.Response
 
-	if config.next == "" {
-		config.next = "https://pokeapi.co/api/v2/location-area?limit=20"
+	if config.Next == "" {
+		config.Next = "https://pokeapi.co/api/v2/location-area?limit=20"
 	}
 
 	if nextOrPrev{
-		if config.next == "" {
+		if config.Next == "" {
 			return MapStruct{}, fmt.Errorf("no next page available")
 		}
-		resp, err = http.Get(config.next)
+		resp, err = http.Get(config.Next)
 	}else{
-		if config.prev == "" || config.prev == "null" {
+		if config.Prev == "" || config.Prev == "null" {
 			return MapStruct{}, fmt.Errorf("you're on the first page")
 		}
-		resp, err = http.Get(config.prev)
+		resp, err = http.Get(config.Prev)
 	}
 	defer resp.Body.Close()
 
@@ -52,8 +54,8 @@ func getMap(config *config, nextOrPrev bool) (MapStruct, error){
 		return MapStruct{}, err
 	}
 
-	config.next = mapData.Next
-	config.prev = mapData.Previous
+	config.Next = mapData.Next
+	config.Prev = mapData.Previous
 	
 	return mapData, nil
 }

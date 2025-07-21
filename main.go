@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"github.com/aa3447/pokedex/internal/commands"
+	"github.com/aa3447/pokedex/internal/global_structs"
 )
 
 
  func main() {
-	commandMap := commandMapGen()
-	config := &config{
-		next: "",
-		prev: "",
+	commandMap := commands.CommandMapGen()
+	config := &global_structs.Config{
+		Next: "",
+		Prev: "",
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -28,9 +30,9 @@ import (
 
 		command, exist := commandMap[cleanedInput[0]]
 		if exist{
-			command.callback(config)
-			if command.name == "help"{
-				fmt.Println(command.description)
+			command.Callback(config)
+			if command.Name == "help"{
+				fmt.Println(command.Description)
 			}
 		} else {
 			fmt.Printf("Unknown command: %s\n", cleanedInput[0])
