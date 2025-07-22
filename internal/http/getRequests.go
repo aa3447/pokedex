@@ -1,5 +1,6 @@
 package http
 // Package http provides the HTTP client functionality to fetch data from the PokeAPI.
+// This file deals with fetching map data from the API.
 
 
 import (
