@@ -64,7 +64,6 @@ func commandExit(config *global_structs.Config) error{
  }
 
 func commandMap(config *global_structs.Config) error {
-	//mapData ,err := http.GetMap(config, true)
 	mapData ,err := http.GetMapCache(config, true)
 	if err != nil {
 		fmt.Println("Error fetching map data:", err)
@@ -78,7 +77,6 @@ func commandMap(config *global_structs.Config) error {
 }
 
 func commandMapBack(config *global_structs.Config) error {
-	//mapData ,err := http.GetMap(config, false)
 	mapData ,err := http.GetMapCache(config, false)
 	if err != nil {
 		fmt.Println("Error fetching map data:", err)

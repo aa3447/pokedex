@@ -39,11 +39,11 @@ func (c *Cache) Add(key string, val []byte) {
 	}
 	
 	mux.Lock()
+	defer mux.Unlock()
 	c.CacheData[key] = cacheEntry{
 		CreatedAt: time.Now(),
 		Val: val,
 	}
-	mux.Unlock()
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {

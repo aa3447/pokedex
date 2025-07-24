@@ -34,10 +34,12 @@ func TestCleanInput(t *testing.T){
 		result := cleanInput(test.input)
 		if len(result) != len(test.expected) {
 			t.Errorf("Expected length %d, got %d", len(test.expected), len(result))
+			return
 		}
 		for i, v := range result {
 			if v != test.expected[i] {
 				t.Errorf("Expected %s, got %s", test.expected[i], v)
+				return
 			}
 		}
 	}

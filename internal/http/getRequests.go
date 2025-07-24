@@ -64,10 +64,12 @@ func GetMap(config *global_structs.Config, nextOrPrev bool) (MapStruct, error){
 	return mapData, nil
 }
 
+// GetMapCache fetches the map data from the cache or the API if not cached.
 func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, error){
 	var err error
 	var resp *http.Response
 	var cacheExists bool
+	var cacheMap []byte
 	
 	if cache == nil {
 		cache = NewCache(5 * time.Minute)
@@ -83,7 +85,7 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 			return MapStruct{}, fmt.Errorf("no next page available")
 		}
 		
-		cacheExists = cache.Exists(config.Next)
+		cacheMap, cacheExists = cache.Get(config.Next)
 		if !cacheExists {
 			resp, err = http.Get(config.Next)
 		}
@@ -92,7 +94,7 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 			return MapStruct{}, fmt.Errorf("you're on the first page")
 		}
 		
-		cacheExists = cache.Exists(config.Prev)
+		cacheMap, cacheExists = cache.Get(config.Prev)
 		if !cacheExists {
 			resp, err = http.Get(config.Prev)
 		}
@@ -111,11 +113,11 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 		}
 
 		var mapData MapStruct
-		if err := json.NewDecoder(resp.Body).Decode(&mapData); err != nil {
+		if err = json.NewDecoder(resp.Body).Decode(&mapData); err != nil {
 			return MapStruct{}, err
 		}
 
-		cacheMap , err := json.Marshal(mapData)
+		cacheMap , err = json.Marshal(mapData)
 		if err != nil {
 			return MapStruct{}, fmt.Errorf("error marshalling map data: %v", err)
 		}
@@ -125,21 +127,9 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 		config.Prev = mapData.Previous
 		return mapData, nil
 	} else {
-		var cacheMap []byte
-		var exists bool
-
-		if nextOrPrev{
-			cacheMap, exists = cache.Get(config.Next)
-		} else {
-			cacheMap, exists = cache.Get(config.Prev)
-		}
-		
-		if !exists {
-			return MapStruct{}, fmt.Errorf("cache entry not found for %s", config.Next)
-		}
 
 		var mapData MapStruct
-		if err := json.Unmarshal(cacheMap, &mapData); err != nil {
+		if err = json.Unmarshal(cacheMap, &mapData); err != nil {
 			return MapStruct{}, fmt.Errorf("error unmarshalling cached map data: %v", err)
 		}
 
