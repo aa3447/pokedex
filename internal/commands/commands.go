@@ -11,7 +11,7 @@ import (
 type CommandTemplate struct {
 	Name string
 	Description string
-	Callback func(*global_structs.Config) error
+	Callback func(*global_structs.Config, ...string) error
 }
 
 // commandMapGen generates a map of commands with their names, descriptions, and callbacks.
@@ -32,6 +32,11 @@ func CommandMapGen() map[string]CommandTemplate{
 			Description: "Displays the previous names of 20 location areas in the Pokemon",
 			Callback: commandMapBack,
 		},
+		"explore": {
+			Name: "explore",
+			Description: "List all available pokemon in a location",
+			Callback: commandExplore,
+		},
 	}
 
 	// Dynamically generate help command description
@@ -50,20 +55,20 @@ func CommandMapGen() map[string]CommandTemplate{
 }
 
 //Command Handlers
-func commandExit(config *global_structs.Config) error{
+func commandExit(config *global_structs.Config, augments ...string) error{
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
  }
 
- func commandHelp(config *global_structs.Config) error{
+ func commandHelp(config *global_structs.Config, augments ...string) error{
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println("")
 	return nil
  }
 
-func commandMap(config *global_structs.Config) error {
+func commandMap(config *global_structs.Config, augments ...string) error {
 	mapData ,err := http.GetMapCache(config, true)
 	if err != nil {
 		fmt.Println("Error fetching map data:", err)
@@ -76,7 +81,7 @@ func commandMap(config *global_structs.Config) error {
 	return nil
 }
 
-func commandMapBack(config *global_structs.Config) error {
+func commandMapBack(config *global_structs.Config, augments ...string) error {
 	mapData ,err := http.GetMapCache(config, false)
 	if err != nil {
 		fmt.Println("Error fetching map data:", err)
@@ -86,5 +91,19 @@ func commandMapBack(config *global_structs.Config) error {
 	for _, result := range mapData.Results {
 		fmt.Println(result.Name)
 	}
+	return nil
+}
+
+func commandExplore(config *global_structs.Config, augments ...string) error {
+	pokeData, err := http.GetLocationPokemonCache(config, augments[0])
+	if err != nil {
+		fmt.Println("Error fetching location pokemon data:", err)
+		return err
+	}
+	
+	fmt.Printf("Listing all pokemon in %s:\n", augments[0])
+	for _, pokemon := range pokeData.Pokemon_encounters{	
+		fmt.Println("- " + pokemon.Pokemon.Name)
+	} 
 	return nil
 }

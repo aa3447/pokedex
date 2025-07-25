@@ -30,10 +30,15 @@ import (
 
 		command, exist := commandMap[cleanedInput[0]]
 		if exist{
-			command.Callback(config)
+			if len(cleanedInput) > 1 {
+				command.Callback(config, cleanedInput[1])
+			}else {
+				command.Callback(config)
+			}
+
 			if command.Name == "help"{
 				fmt.Println(command.Description)
-			}
+			} 
 		} else {
 			fmt.Printf("Unknown command: %s\n", cleanedInput[0])
 		}

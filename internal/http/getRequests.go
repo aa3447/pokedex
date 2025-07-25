@@ -21,6 +21,60 @@ type MapStruct struct {
 	} `json:"results"`
 }
 
+type LocationPokemon struct {
+	Encounter_method_rates []struct {
+		EncounterMethod struct {
+			Name string `json:"name"`
+			URL string `json:"url"`
+		} `json:"encounter_method"`
+		VersionDetails []struct {
+			Rate int `json:"rate"`
+			Version struct {
+				Name string `json:"name"`
+				URL string `json:"url"`
+			} `json:"version"`
+		} `json:"version_details"`
+	} `json:"encounter_method_rates"`
+	Encounter_method struct {
+		Name string `json:"name"`
+		URL string `json:"url"`
+	} `json:"encounter_method"`
+	Game_index int `json:"game_index"`
+	Id int `json:"id"`
+	Location struct {
+		Name string `json:"name"`
+		URL string `json:"url"`
+	} `json:"location"`
+	Names []struct {
+		Name string `json:"name"`
+		Language struct {
+			Name string `json:"name"`
+			URL string `json:"url"`
+		} `json:"language"`
+	} `json:"names"`
+	Pokemon_encounters []struct {
+		Pokemon struct {
+			Name string `json:"name"`
+			URL string `json:"url"`
+		} `json:"pokemon"`
+		Version_details []struct {
+			Encounter_details []struct {
+				Chance int `json:"chance"`
+				Condition_values []struct {} `json:"condition_values"`
+				Method struct {
+					Name string `json:"name"`
+					URL string `json:"url"`
+				} `json:"method"`
+			} `json:"encounter_details"`
+			Max_chance int `json:"max_chance"`
+			Version struct {
+				Name string `json:"name"`
+				URL string `json:"url"`
+			} `json:"version"`
+		} `json:"version_details"`
+	} `json:"pokemon_encounters"`
+}
+
 var cache *Cache
 
 // getMap fetches the map data from the API and updates the config with the next and previous URLs.
@@ -136,5 +190,54 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 		config.Next = mapData.Next
 		config.Prev = mapData.Previous
 		return mapData, nil
+	}
+}
+
+func GetLocationPokemonCache(config *global_structs.Config, location string) (LocationPokemon, error){
+	var err error
+	var resp *http.Response
+	var cacheExists bool
+	var cachePoke []byte
+	
+	if cache == nil {
+		cache = NewCache(5 * time.Minute)
+	}
+	
+	locationUrl := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%s/", location)
+	cachePoke, cacheExists = cache.Get(locationUrl)
+	if !cacheExists {
+		resp, err = http.Get(locationUrl)
+	}
+	
+	
+	if !cacheExists{
+		if err != nil {
+			return LocationPokemon{},err
+		}
+
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return LocationPokemon{}, fmt.Errorf("received status code %d", resp.StatusCode)
+		}
+
+		var pokemonData LocationPokemon
+		if err = json.NewDecoder(resp.Body).Decode(&pokemonData); err != nil {
+			return LocationPokemon{}, err
+		}
+
+		cachePoke , err = json.Marshal(pokemonData)
+		if err != nil {
+			return LocationPokemon{}, fmt.Errorf("error marshalling map data: %v", err)
+		}
+		cache.Add(locationUrl, cachePoke) 
+
+		return pokemonData, nil
+	} else {
+		var pokemonData LocationPokemon
+		if err = json.Unmarshal(cachePoke, &pokemonData); err != nil {
+			return LocationPokemon{}, fmt.Errorf("error unmarshalling cached map data: %v", err)
+		}
+		return pokemonData, nil
 	}
 }
