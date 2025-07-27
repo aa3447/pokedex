@@ -1,18 +1,28 @@
 package commands
+
 // Package commands provides the command handling functionality for the Pokedex application.
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
-	"github.com/aa3447/pokedex/internal/http"
+	"time"
+
 	"github.com/aa3447/pokedex/internal/global_structs"
+	"github.com/aa3447/pokedex/internal/http"
 )
 
 type CommandTemplate struct {
 	Name string
 	Description string
-	Callback func(*global_structs.Config, ...string) error
+	Callback func(config *global_structs.Config,augments ...string) error
 }
+
+type Pokedex struct {
+	Dex map[string]http.Pokemon
+}
+
+var pokedex *Pokedex
 
 // commandMapGen generates a map of commands with their names, descriptions, and callbacks.
 func CommandMapGen() map[string]CommandTemplate{
@@ -36,6 +46,11 @@ func CommandMapGen() map[string]CommandTemplate{
 			Name: "explore",
 			Description: "List all available pokemon in a location",
 			Callback: commandExplore,
+		},
+		"catch": {
+			Name: "catch",
+			Description: "Catch a pokemon by name",
+			Callback: catchPokemon,
 		},
 	}
 
@@ -95,7 +110,12 @@ func commandMapBack(config *global_structs.Config, augments ...string) error {
 }
 
 func commandExplore(config *global_structs.Config, augments ...string) error {
+	if len(augments) < 1 {
+		fmt.Println("Please provide a location")
+		return nil
+	}
 	pokeData, err := http.GetLocationPokemonCache(config, augments[0])
+	
 	if err != nil {
 		fmt.Println("Error fetching location pokemon data:", err)
 		return err
@@ -106,4 +126,45 @@ func commandExplore(config *global_structs.Config, augments ...string) error {
 		fmt.Println("- " + pokemon.Pokemon.Name)
 	} 
 	return nil
+}
+
+func catchPokemon(config *global_structs.Config, augments ...string) error {
+	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
+	if pokedex == nil {
+		pokedex = &Pokedex{
+			Dex: make(map[string]http.Pokemon),
+		}
+	}
+
+	if len(augments) < 1 {
+		fmt.Println("Please provide a pokemon name to catch.")
+		return nil
+	}
+	pokemon, err := http.GetPokemonDetailsCache(config, augments[0])
+
+	if err != nil {
+		fmt.Println("Error fetching pokemon data:", err)
+		return err
+	}
+	
+	pokemonName := augments[0]
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	catchRate := 100.0 - (float64(pokemon.BaseExperience)/10.0)
+	if randGen.Float64()*100.0 < catchRate {
+		fmt.Printf("Congratulations! You caught a %s!\n", pokemonName)
+		pokedex.Dex[pokemonName] = pokemon
+	} else {
+		fmt.Printf("Oh no! The %s escaped!\n", pokemonName)
+	}
+	
+	return nil
+}
+
+func GetPokedex() *Pokedex {
+	if pokedex == nil {
+		pokedex = &Pokedex{
+			Dex: make(map[string]http.Pokemon),
+		}
+	}
+	return pokedex
 }
