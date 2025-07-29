@@ -57,6 +57,11 @@ func CommandMapGen() map[string]CommandTemplate {
 			Description: "Inspect a pokemon by name",
 			Callback:    inspectPokemon,
 		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "List all pokemon you have caught",
+			Callback:    listOwnedPokemon,
+		},
 	}
 
 	// Dynamically generate help command description
@@ -75,12 +80,14 @@ func CommandMapGen() map[string]CommandTemplate {
 }
 
 // Command Handlers
+
+// commandExit exits the Pokedex application.
 func commandExit(config *global_structs.Config, arguments ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
-
+// commandHelp displays the help message for all commands.
 func commandHelp(config *global_structs.Config, arguments ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -88,6 +95,7 @@ func commandHelp(config *global_structs.Config, arguments ...string) error {
 	return nil
 }
 
+// commandMap fetches and displays the names of 20 location areas in the Pokemon.
 func commandMap(config *global_structs.Config, arguments ...string) error {
 	mapData, err := http.GetMapCache(config, true)
 	if err != nil {
@@ -101,6 +109,7 @@ func commandMap(config *global_structs.Config, arguments ...string) error {
 	return nil
 }
 
+// commandMapBack fetches and displays the previous names of 20 location areas in the Pokemon.
 func commandMapBack(config *global_structs.Config, arguments ...string) error {
 	mapData, err := http.GetMapCache(config, false)
 	if err != nil {
@@ -114,6 +123,8 @@ func commandMapBack(config *global_structs.Config, arguments ...string) error {
 	return nil
 }
 
+// commandExplore lists all available pokemon in a specified location.
+// It requires a location name as an argument.
 func commandExplore(config *global_structs.Config, arguments ...string) error {
 	if len(arguments)  < 1 {
 		fmt.Println("Please provide a location")
@@ -133,6 +144,8 @@ func commandExplore(config *global_structs.Config, arguments ...string) error {
 	return nil
 }
 
+// catchPokemon attempts to catch a pokemon by name.
+// It requires a pokemon name as an argument.
 func catchPokemon(config *global_structs.Config, arguments ...string) error {
 	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if pokedex == nil {
@@ -169,6 +182,8 @@ func catchPokemon(config *global_structs.Config, arguments ...string) error {
 	return nil
 }
 
+// inspectPokemon inspects a pokemon by name and displays its details.
+// It requires a pokemon name as an argument.
 func inspectPokemon(config *global_structs.Config, arguments ...string) error {
 	if len(arguments)  < 1 {
 		fmt.Println("Please provide a pokemon name to inspect.")
@@ -196,6 +211,27 @@ func inspectPokemon(config *global_structs.Config, arguments ...string) error {
 	fmt.Println("Abilities:")
 	for _, ability := range pokemon.Abilities {
 		fmt.Printf("- %s\n", ability.Ability.Name)
+	}
+	return nil
+}
+
+// listOwnedPokemon lists all pokemon that have been caught by the user.
+func listOwnedPokemon(config *global_structs.Config, arguments ...string) error {
+	if pokedex == nil  {
+		pokedex = &Pokedex{
+			Dex: make(map[string]http.Pokemon),
+		}
+		fmt.Println("You have no pokemon in your Pokedex.")
+		return nil
+	}
+	if len(pokedex.Dex) == 0 {
+		fmt.Println("You have no pokemon in your Pokedex.")
+		return nil
+	}
+
+	fmt.Println("Your Pokedex contains the following pokemon:")
+	for name := range pokedex.Dex {
+		fmt.Println("- " + name)
 	}
 	return nil
 }

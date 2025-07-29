@@ -168,6 +168,7 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 	var resp *http.Response
 	var cacheExists bool
 	var cacheMap []byte
+	var mapData MapStruct
 	
 	if cache == nil {
 		cache = NewCache(5 * time.Minute)
@@ -210,7 +211,6 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 			return MapStruct{}, fmt.Errorf("received status code %d", resp.StatusCode)
 		}
 
-		var mapData MapStruct
 		if err = json.NewDecoder(resp.Body).Decode(&mapData); err != nil {
 			return MapStruct{}, err
 		}
@@ -221,20 +221,16 @@ func GetMapCache(config *global_structs.Config, nextOrPrev bool) (MapStruct, err
 		}
 		cache.Add(config.Next, cacheMap) 
 
-		config.Next = mapData.Next
-		config.Prev = mapData.Previous
-		return mapData, nil
+		
 	} else {
-
-		var mapData MapStruct
 		if err = json.Unmarshal(cacheMap, &mapData); err != nil {
 			return MapStruct{}, fmt.Errorf("error unmarshalling cached map data: %v", err)
 		}
-
-		config.Next = mapData.Next
-		config.Prev = mapData.Previous
-		return mapData, nil
 	}
+
+	config.Next = mapData.Next
+	config.Prev = mapData.Previous
+	return mapData, nil
 }
 
 func GetLocationPokemonCache(config *global_structs.Config, location string) (LocationPokemon, error){
@@ -242,6 +238,7 @@ func GetLocationPokemonCache(config *global_structs.Config, location string) (Lo
 	var resp *http.Response
 	var cacheExists bool
 	var cachePoke []byte
+	var pokemonData LocationPokemon
 	
 	if cache == nil {
 		cache = NewCache(5 * time.Minute)
@@ -262,7 +259,7 @@ func GetLocationPokemonCache(config *global_structs.Config, location string) (Lo
 			return LocationPokemon{}, fmt.Errorf("received status code %d", resp.StatusCode)
 		}
 
-		var pokemonData LocationPokemon
+		
 		if err = json.NewDecoder(resp.Body).Decode(&pokemonData); err != nil {
 			return LocationPokemon{}, err
 		}
@@ -272,15 +269,13 @@ func GetLocationPokemonCache(config *global_structs.Config, location string) (Lo
 			return LocationPokemon{}, fmt.Errorf("error marshalling map data: %v", err)
 		}
 		cache.Add(locationUrl, cachePoke) 
-
-		return pokemonData, nil
 	} else {
-		var pokemonData LocationPokemon
 		if err = json.Unmarshal(cachePoke, &pokemonData); err != nil {
 			return LocationPokemon{}, fmt.Errorf("error unmarshalling cached map data: %v", err)
 		}
-		return pokemonData, nil
 	}
+
+	return pokemonData, nil
 }
 
 func GetPokemonDetailsCache(config *global_structs.Config, pokemon string) (Pokemon, error){
@@ -288,6 +283,7 @@ func GetPokemonDetailsCache(config *global_structs.Config, pokemon string) (Poke
 	var resp *http.Response
 	var cacheExists bool
 	var cachePoke []byte
+	var pokemonData Pokemon
 	
 	if cache == nil {
 		cache = NewCache(5 * time.Minute)
@@ -308,7 +304,6 @@ func GetPokemonDetailsCache(config *global_structs.Config, pokemon string) (Poke
 			return Pokemon{}, fmt.Errorf("received status code %d", resp.StatusCode)
 		}
 
-		var pokemonData Pokemon
 		if err = json.NewDecoder(resp.Body).Decode(&pokemonData); err != nil {
 			return Pokemon{}, err
 		}
@@ -318,13 +313,11 @@ func GetPokemonDetailsCache(config *global_structs.Config, pokemon string) (Poke
 			return Pokemon{}, fmt.Errorf("error marshalling map data: %v", err)
 		}
 		cache.Add(pokemonUrl, cachePoke) 
-
-		return pokemonData, nil
 	} else {
-		var pokemonData Pokemon
 		if err = json.Unmarshal(cachePoke, &pokemonData); err != nil {
 			return Pokemon{}, fmt.Errorf("error unmarshalling cached map data: %v", err)
-		}
-		return pokemonData, nil
+		}	
 	}
+	
+	return pokemonData, nil
 }
